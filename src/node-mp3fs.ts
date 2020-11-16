@@ -25,7 +25,7 @@ const ops = {
             return cb(0, files);
         } catch (e) {
             console.error(e);
-            return cb(1, undefined);
+            return cb(-1, undefined);
         }
     },
     getattr: async function (path: string, cb): Promise<any> {

@@ -1,4 +1,4 @@
-import ITranscoder from "./transcoder.interface";
+import ITranscoder from "../interfaces/transcoder.interface";
 
 export class PassthoughTranscoder implements ITranscoder {
 

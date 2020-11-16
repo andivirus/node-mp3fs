@@ -1,5 +1,5 @@
 import {FlacTranscoder} from "../transcoders/flacTranscoder";
-import ITranscoder from "../transcoders/transcoder.interface";
+import ITranscoder from "../interfaces/transcoder.interface";
 import {PassthoughTranscoder} from "../transcoders/passthoughTranscoder";
 
 export class TranscoderProvider {

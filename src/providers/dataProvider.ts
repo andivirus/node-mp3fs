@@ -3,6 +3,7 @@ import * as NodeCache from "node-cache";
 import {join} from "path";
 import {Stats} from "fs";
 import {TranscoderProvider} from "./transcoderProvider";
+import * as mm from 'music-metadata';
 
 export class DataProvider {
 
@@ -34,7 +35,15 @@ export class DataProvider {
 
     public async stat(path: string): Promise<Stats> {
         const fullPath = this.constructPath(path);
-        return fs.promises.stat(fullPath);
+        let stats = await fs.promises.stat(fullPath);
+        if(fullPath.endsWith('.flac')) {
+            const meta = await mm.parseFile(fullPath)
+            const estimate = (meta.format.duration * 320) / 8 * 1000 + meta.common.picture.reduce(
+                (previousValue , currentValue) =>  previousValue + currentValue.data.length, 0)
+            console.log(`estimate = ${estimate}`);
+            stats.size = estimate;
+        }
+        return stats
     }
 
     public async open(path: string): Promise<Buffer> {
@@ -65,5 +74,6 @@ export class DataProvider {
         const cacheKey = this.constructCacheKey(path);
         this.cache.del(cacheKey);
     }
+
 }
 

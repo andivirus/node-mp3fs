@@ -1,4 +1,4 @@
-import ITranscoder from './transcoder.interface';
+import ITranscoder from '../interfaces/transcoder.interface';
 import * as Flac from 'libflacjs/dist/libflac.wasm';
 import {Decoder} from 'libflacjs/lib/decoder';
 import * as mm from 'music-metadata';
@@ -19,8 +19,6 @@ export class FlacTranscoder implements ITranscoder {
         if (config !== undefined && config !== null) {
             this.outputBitrate = config.bitrate;
             this.outputQuality = config.quality;
-            console.log(`this.outputQuality = ${this.outputQuality}`);
-            console.log(`this.outputBitrate = ${this.outputBitrate}`);
         }
     }
 
@@ -47,17 +45,13 @@ export class FlacTranscoder implements ITranscoder {
             throw new Error('FlacTranscoder not initialized!');
         }
 
-        const decoder = new Decoder(this.libFlac, {verify: true, enableRawMetadata: true})
+        const decoder = new Decoder(this.libFlac, {verify: true, enableRawMetadata: false})
         const metadata = await mm.parseBuffer(flacBuffer, {mimeType: 'audio/x-flac'})
 
         decoder.decode(new Uint8Array(flacBuffer));
         const resultArray = decoder.getSamples(true);
         const pcmBuffer = Buffer.from(resultArray);
 
-        console.log(this.outputBitrate)
-        console.log(this.outputQuality)
-        console.log(metadata.format.sampleRate/1000)
-        console.log(metadata.format.bitsPerSample)
         const encoder = new Lame({
             'output': 'buffer',
             // @ts-ignore
@@ -79,20 +73,10 @@ export class FlacTranscoder implements ITranscoder {
             await encoder.encode();
             outputBuffer = encoder.getBuffer();
             const tags = this.transformMetadata(metadata);
-            outputBuffer = await new Promise((resolve, reject) => {
-                NodeId3.update(tags, encoder.getBuffer(), (err, buffer) => {
-                    if (err)
-                        return reject(err);
-                    else {
-                        console.log("resolving encoder");
-                        return resolve(buffer);
-                    }
-                })
-            })
+            outputBuffer = NodeId3.update(tags, outputBuffer);
         } catch (e) {
             throw e;
         }
-        console.log(outputBuffer.length);
         return outputBuffer;
     }
 
@@ -104,6 +88,7 @@ export class FlacTranscoder implements ITranscoder {
             album: input.common.album,
             genre: input?.common?.genre?.join(),
             date: input.common.date,
+            length: input.format.duration * 1000 + '',
             trackNumber: `${input.common.track.no.toString()}/${input.common.track.of}`,
             performerInfo: input.common.albumartist === null ? input.common.artist : input.common.albumartist,
             image: this.imageExists(picture) ? this.mapImageObject(picture[0]) : undefined,
