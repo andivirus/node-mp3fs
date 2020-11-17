@@ -10,8 +10,8 @@ import {TranscoderProvider} from "./providers/transcoderProvider";
 const optionParser = new OptionsProvider();
 
 const transcoderProvider = new TranscoderProvider({
-    bitrate: optionParser.bitrate,
-    quality: optionParser.quality
+    outputBitrate: optionParser.bitrate,
+    outputQuality: optionParser.quality
 });
 
 const dataProvider = new DataProvider(optionParser.sourcepath, transcoderProvider);

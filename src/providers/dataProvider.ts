@@ -3,13 +3,12 @@ import * as NodeCache from "node-cache";
 import {join} from "path";
 import {Stats} from "fs";
 import {TranscoderProvider} from "./transcoderProvider";
-import * as mm from 'music-metadata';
 
 export class DataProvider {
 
     private readonly cache;
     private readonly SOURCE_PATH;
-    private readonly transcoderProvider;
+    private readonly transcoderProvider: TranscoderProvider;
 
     constructor(sourcePath: string, transcoderProvider: TranscoderProvider) {
         this.SOURCE_PATH = sourcePath;
@@ -23,18 +22,25 @@ export class DataProvider {
 
     public async readdir(path: string): Promise<string[]> {
         const fullPath = this.constructPath(path);
-        return fs.promises.readdir(fullPath);
+        const dirContent = await fs.promises.readdir(fullPath);
+        dirContent.map(async entry => {
+            if((await fs.promises.stat(fullPath + entry)).isFile()) {
+                const transcoderObject = this.transcoderProvider.returnTranscoder(fullPath + entry)
+                this.cache.put(transcoderObject.getMappedFilePath())
+                transcoderObject.initialize();
+                return transcoderObject.getMappedFileName();
+            }
+        })
     }
 
     private constructPath(path: string): string {
-        if (path.endsWith('.flac.mp3')) {
-            path = path.replace('.flac.mp3', '.flac')
-        }
         return join(this.SOURCE_PATH, path);
     }
 
     public async stat(path: string): Promise<Stats> {
         const fullPath = this.constructPath(path);
+
+        /*
         let stats = await fs.promises.stat(fullPath);
         if(fullPath.endsWith('.flac')) {
             const meta = await mm.parseFile(fullPath)
@@ -44,6 +50,7 @@ export class DataProvider {
             stats.size = estimate;
         }
         return stats
+         */
     }
 
     public async open(path: string): Promise<Buffer> {

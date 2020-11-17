@@ -1,3 +1,4 @@
+/*
 import ITranscoder from '../interfaces/transcoder.interface';
 import * as Flac from 'libflacjs/dist/libflac.wasm';
 import {Decoder} from 'libflacjs/lib/decoder';
@@ -6,6 +7,7 @@ import * as NodeId3 from 'node-id3';
 import {Lame} from "node-lame";
 import {IAudioMetadata, IPicture} from "music-metadata";
 import {Id3Image} from "../interfaces/id3_image";
+
 
 export class FlacTranscoder implements ITranscoder {
 
@@ -109,3 +111,5 @@ export class FlacTranscoder implements ITranscoder {
         }
     }
 }
+
+ */
