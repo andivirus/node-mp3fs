@@ -44,6 +44,9 @@ const ops = {
             data = await dataProvider.open(path);
         } catch (e) {
             console.error(e as Error);
+            if((e as Error).message.includes('SIZE TOO LARGE')) {
+                cb(-11)
+            }
         }
         //TODO: move calculations to dataProvider
         if (position >= data.length) {
@@ -62,7 +65,7 @@ const ops = {
 
 
 const MOUNTPOINT = optionParser.mountpoint;
-const fuse = new Fuse(MOUNTPOINT, ops, {autoCache: true, debug: true, force: true, mkdir: true});
+const fuse = new Fuse(MOUNTPOINT, ops, {autoCache: true, debug: false, force: true, mkdir: true});
 mountFuse();
 
 function mountFuse() {
