@@ -51,6 +51,8 @@ export class DataProvider {
 
     public async open(path: string): Promise<Buffer> {
         const fullPath = this.constructPath(path);
+        console.log(`pid=${process.pid}`);
+        console.log(`fullPath = ${fullPath}`)
         const cacheKey = this.constructCacheKey(fullPath);
         let buffer: Buffer;
         buffer = this.cache.get(cacheKey);
@@ -90,9 +92,13 @@ export class DataProvider {
     }
 
     public async releaseFile(path: string): Promise<void> {
-        const cacheKey = this.constructCacheKey(path);
+        const fullPath = this.constructPath(path); // maybe delete this in future rework
+
+        const cacheKey = this.constructCacheKey(fullPath);
+        console.log(`Uncaching file with cacheKey=${cacheKey}`)
         this.cache.del(cacheKey);
         this.sizeMap.delete(cacheKey);
+        console.log(this.cache.keys());
     }
 
 }

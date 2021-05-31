@@ -19,8 +19,8 @@ export class FlacTranscoder implements ITranscoder {
         if (config !== undefined && config !== null) {
             this.outputBitrate = config.bitrate;
             this.outputQuality = config.quality;
-            console.log(`this.outputQuality = ${this.outputQuality}`);
-            console.log(`this.outputBitrate = ${this.outputBitrate}`);
+            // console.log(`this.outputQuality = ${this.outputQuality}`);
+            // console.log(`this.outputBitrate = ${this.outputBitrate}`);
         }
     }
 
@@ -51,13 +51,11 @@ export class FlacTranscoder implements ITranscoder {
         const metadata = await mm.parseBuffer(flacBuffer, {mimeType: 'audio/x-flac'})
 
         decoder.decode(new Uint8Array(flacBuffer));
-        const resultArray = decoder.getSamples(true);
-        const pcmBuffer = Buffer.from(resultArray);
+        let resultArray = decoder.getSamples(true);
+        let pcmBuffer = Buffer.from(resultArray);
 
-        console.log(this.outputBitrate)
-        console.log(this.outputQuality)
-        console.log(metadata.format.sampleRate/1000)
-        console.log(metadata.format.bitsPerSample)
+        decoder.destroy();
+        resultArray = null;
         const encoder = new Lame({
             'output': 'buffer',
             // @ts-ignore
@@ -78,6 +76,7 @@ export class FlacTranscoder implements ITranscoder {
         try {
             await encoder.encode();
             outputBuffer = encoder.getBuffer();
+            pcmBuffer = null;
             const tags = this.transformMetadata(metadata);
             outputBuffer = await new Promise((resolve, reject) => {
                 NodeId3.update(tags, encoder.getBuffer(), (err, buffer) => {
@@ -92,7 +91,6 @@ export class FlacTranscoder implements ITranscoder {
         } catch (e) {
             throw e;
         }
-        console.log(outputBuffer.length);
         return outputBuffer;
     }
 
